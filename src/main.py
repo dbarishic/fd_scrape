@@ -6,10 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from bs4 import BeautifulSoup, Tag
+from sqlalchemy.orm import Session
 
 from dto.event import Event
 from dto.performer import Performer
 from dto.venue import Venue
+from db.db import get_engine
 
 BASE_URL = "https://www.lucernefestival.ch"
 START_URL = f"{BASE_URL}/en/program/summer-festival-22"  # start scraping from here
@@ -29,12 +31,14 @@ def scrape():
     for task in as_completed(tasks):
         events.append(task.result())
 
+    write_events_to_db(events)
+
     dates = []
     for event in events:
         dates.append(event.date)
     from collections import Counter
-    result = dict(Counter(dates))
 
+    result = dict(Counter(dates))
     print(result)
 
 
@@ -206,8 +210,10 @@ def extract_ticket_info(ticket_info_element) -> tuple[str, str, str]:
     return buy_tickets_url, festival, price
 
 
-def write_to_db():
-    pass
+def write_events_to_db(events: list[Event]) -> None:
+    engine = get_engine()
+    with Session(engine) as session:
+        session.bulk_save_objects(events)
 
 
 def read_from_db():
