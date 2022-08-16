@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+    postgres:
+        image: postgres:14.5
+        restart: always
+        environment:
+          - POSTGRES_USER=postgres # default user for local dev
+          - POSTGRES_PASSWORD=postgres # default pwd for local dev | NOT PROD READY
+        logging:
+          options:
+            max-size: 10m
+            max-file: "3"
+        ports:
+          - '5432:5432'
+        volumes:
+          - ./postgres-data:/var/lib/postgresql/data
+          - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql

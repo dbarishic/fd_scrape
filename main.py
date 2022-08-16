@@ -1,7 +1,7 @@
 # Write a script to crawl events from a clients website (date, time, location, title, artists, works, image link, everything that is possible)
 # Insert data into a database (PostgresSQL), with a self-defined schema
 # The script, after crawling, should extract the data from the database and plot the data. The plot should show the total events of each day.
-
+import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
@@ -29,6 +29,13 @@ def scrape():
     for task in as_completed(tasks):
         events.append(task.result())
 
+    dates = []
+    for event in events:
+        dates.append(event.date)
+    from collections import Counter
+    result = dict(Counter(dates))
+
+    print(result)
 
 
 def extract_info_from_event_elem(event_elem: Tag) -> Event:
@@ -68,15 +75,6 @@ def extract_info_from_event_elem(event_elem: Tag) -> Event:
     except AttributeError as ae:
         print(f"Could not parse ticket status, {repr(ae)}")
         buy_tickets_url, festival, price = None, None, None
-
-    print(f"Title: {title}")
-    print(f"date: {date}")
-    print(f"time: {time}")
-    print(f"venue: {venue_name}")
-    print(f"Program: {program}")
-    print(f"festival: {festival}")
-    print(f"tickets: {buy_tickets_url}")
-    print(f"price: {price}")
 
     event = Event()
     event.title = title
@@ -175,13 +173,18 @@ def get_cast_info_urls(cast_element: Tag) -> list[str]:
     return urls
 
 
-def extract_datetime_venue(date_and_venue) -> tuple[str, str, str]:
+def extract_datetime_venue(date_and_venue) -> tuple[datetime.date, str, str]:
     date_and_venue = " ".join(date_and_venue.split())  # remove (all but one) spaces and all special characters
     tokens = date_and_venue.split("|")
-    date = tokens[0]
+
+    date = tokens[0].strip().split(' ')[1]
+    day = int(date.split('.')[0])
+    month = int(date.split('.')[1])
+    date = datetime.date(2022, month, day)
+
     time = tokens[1]
     venue = tokens[2]
-    return date, time, venue
+    return date, time.strip(), venue.strip()
 
 
 def extract_ticket_info(ticket_info_element) -> tuple[str, str, str]:

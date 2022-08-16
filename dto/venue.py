@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+from uuid import uuid4
 
 
 @dataclass
 class Venue:
+    venue_id = uuid4()
     name: str = ""
     address: str = ""
     google_maps_url: str = ""
