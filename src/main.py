@@ -103,7 +103,10 @@ def extract_info_from_event_elem(event_elem: Tag) -> Event:
     event.description = description
     event.program = program
     event.festival = festival
-    event.price = int(list(filter(str.isdigit, price))[0])
+    if price:
+        event.price = int(list(filter(str.isdigit, price))[0])
+    else:
+        event.price = 0
     event.ticket_purchase_url = buy_tickets_url
     event.performers = performers or []
     event.image_url = event_img_url
